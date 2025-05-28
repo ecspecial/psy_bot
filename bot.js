@@ -308,7 +308,7 @@ async function askOpenAI(role, messages) {
 СООБЩЕНИЕ КЛИЕНТА: `
   };
 
-  const contextMessages = messages.slice(-10).map((m, i) => ({
+  const contextMessages = messages.slice(-20).map((m, i) => ({
     role: i % 2 === 0 ? "user" : "assistant",
     content: m
   }));
