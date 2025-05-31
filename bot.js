@@ -52,13 +52,13 @@ const welcomeMessage = `
 Выбери интересующий тебя раздел и нажми на кнопку ниже 👇
 `;
 
-bot.onText(/\/start|\/new/,  async (msg) => {
+bot.onText(/\/start|\/new/, async (msg) => {
   const chatId = msg.chat.id;
   await bot.sendPhoto(chatId, "./0.jpg", {
-      caption: welcomeMessage,
-    parse_mode: "HTML", 
-    MAIN_MENU
-    });
+    caption: welcomeMessage,
+    parse_mode: "HTML",
+    ...MAIN_MENU
+  });
 });
 
 bot.onText(/\/contact/, (msg) => {
