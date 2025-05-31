@@ -58,8 +58,6 @@ bot.onText(/\/start|\/new/,  async (msg) => {
       caption: welcomeMessage,
     parse_mode: "HTML"
     });
-
-  bot.sendMessage(chatId, welcomeMessage, MAIN_MENU);
 });
 
 bot.onText(/\/contact/, (msg) => {
