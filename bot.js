@@ -54,7 +54,7 @@ const welcomeMessage = `
 
 bot.onText(/\/start|\/new/,  async (msg) => {
   const chatId = msg.chat.id;
-  await bot.sendPhoto(chatId, "./0.png", {
+  await bot.sendPhoto(chatId, "./0.jpg", {
       caption: welcomeMessage,
     parse_mode: "HTML"
     });
