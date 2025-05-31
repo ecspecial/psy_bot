@@ -52,9 +52,9 @@ const welcomeMessage = `
 Выбери интересующий тебя раздел и нажми на кнопку ниже 👇
 `;
 
-bot.onText(/\/start|\/new/, (msg) => {
+bot.onText(/\/start|\/new/,  async (msg) => {
   const chatId = msg.chat.id;
-  bot.sendPhoto(chatId, "./0.png", {
+  await bot.sendPhoto(chatId, "./0.png", {
       caption: welcomeMessage,
     parse_mode: "HTML"
     });
