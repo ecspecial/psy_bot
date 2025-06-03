@@ -47,14 +47,22 @@
             invoiceId: invoiceId,
             accountId: accountId,
             skin: 'mini',
-            autoClose: 3,
+            autoClose: false,
             data: data,
             configuration: {
               common: {
-                successRedirectUrl: "https://t.me/Womensworldai_bot",
+                successRedirectUrl: "https://numerologyfromkate.com/success.html",
                 failRedirectUrl: "https://numerologyfromkate.com/fail.html"
               }
             }
+          },
+          function (options) {
+            console.log("✅ Оплата прошла успешно");
+            window.location.href = "https://numerologyfromkate.com/success.html";
+          },
+          function (reason, options) {
+            console.warn("❌ Оплата не удалась");
+            window.location.href = "https://numerologyfromkate.com/fail.html";
           });
         } catch (e) {
           console.error("Ошибка запуска оплаты:", e);
