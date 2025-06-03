@@ -286,7 +286,7 @@ bot.on("callback_query", async (query) => {
             account_id: String(chatId)
             });
 
-            await bot.sendMessage(chatId, "❌ Подписка успешно отменена. Вы всегда можете вернуться позже ❤️");
+            await bot.sendMessage(chatId, "Подписка успешно отменена. Вы всегда можете вернуться позже ❤️");
         } catch (err) {
             const msg = err?.response?.data?.error || err.message;
 
