@@ -350,7 +350,7 @@ bot.on("callback_query", async (query) => {
                 // optional deep-link parameter → Pay-button caption
                 reply_markup: {
                 inline_keyboard: [
-                    [{ text: "💫 Оплатить 1 Stars", pay: true }]
+                    [{ text: "💫 Оплатить 200 Stars", pay: true }]
                 ]
                 }
             }
