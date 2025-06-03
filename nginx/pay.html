@@ -1,0 +1,66 @@
+<!-- /var/www/html/pay.html -->
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Оплата подписки</title>
+  <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
+</head>
+<body>
+  <h1 style="font-family: sans-serif; color: #444; text-align: center; margin-top: 20%;">Подождите, происходит перенаправление к оплате...</h1>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', function () {
+      setTimeout(() => {
+        try {
+          const query = new URLSearchParams(window.location.search);
+
+          const accountId = query.get("accountId");
+          const invoiceId = query.get("invoiceId");
+          const ftd = query.get("ftd") === "true";
+
+          if (!accountId) {
+            alert("Ошибка: отсутствует accountId");
+            return;
+          }
+
+          const firstAmount = ftd ? 30.00 : 490.00;
+          const recurrentAmount = 490.00;
+
+          const widget = new cp.CloudPayments();
+          const data = {
+            CloudPayments: {
+              recurrent: {
+                interval: 'Week',
+                period: 1,
+                Amount: recurrentAmount
+              }
+            }
+          };
+
+          widget.charge({
+            publicId: 'pk_c7fad15ea66486fdda6654455dd4f',
+            description: 'Подписка на сервис',
+            amount: firstAmount,
+            currency: 'RUB',
+            invoiceId: invoiceId,
+            accountId: accountId,
+            skin: 'mini',
+            autoClose: 3,
+            data: data,
+            configuration: {
+              common: {
+                successRedirectUrl: "https://t.me/Womensworldai_bot",
+                failRedirectUrl: "https://numerologyfromkate.com/fail.html"
+              }
+            }
+          });
+        } catch (e) {
+          console.error("Ошибка запуска оплаты:", e);
+        }
+      }, 300);
+    });
+  </script>
+</body>
+</html>
