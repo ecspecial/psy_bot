@@ -24,12 +24,43 @@ const MAIN_MENU = {
   parse_mode: "HTML"
 };
 
+const BALANCE_MENU = {
+  reply_markup: {
+    inline_keyboard: [
+      [
+        { text: "⭐️ Подписка на 1 неделю - 490 руб.", callback_data: "balance_topup" }
+      ],
+      [
+        { text: "🥲 Отменить подписку", callback_data: "balance_cancel" }
+      ],
+    ]
+  },
+  parse_mode: "HTML"
+};
+
+const BALANCE_OPTIONS_MENU = {
+  reply_markup: {
+    inline_keyboard: [
+      [
+        { text: "СБП", callback_data: "topup_sbp" }
+      ],
+      [
+        { text: "Картой", callback_data: "topup_card" }
+      ],
+      [
+        { text: "Telegram Stars", callback_data: "topup_stars" }
+      ],
+    ]
+  },
+  parse_mode: "HTML"
+};
+
 const userContext = {};
 const userHistory = {};
 
 bot.setMyCommands([
     { command: "new", description: "На главную" },
-    { command: "balance", description: "Пополнить баланс" },
+    { command: "balance", description: "Подписка / Отменить подписку" },
     { command: "contact", description: "Связаться с нами" },
     { command: "terms", description: "Публичная оферта" },
     { command: "policy", description: "Политика конфиденциальности" },
@@ -66,8 +97,23 @@ bot.onText(/\/contact/, (msg) => {
   bot.sendMessage(msg.chat.id, "@KateFromJuly");
 });
 
+
 bot.onText(/\/balance/, (msg) => {
-  bot.sendMessage(msg.chat.id, "https://merchant.cloudpayments.ru/");
+  const chatId = msg.chat.id;
+  const balanceMessage = `
+<b>✨ Доступ к сервису Women's World — за 3 шага:</b>
+
+1️⃣ Выбери нужный тариф ниже
+2️⃣ Оплати любым удобным способом 
+3️⃣ Получи доступ и начинай пользоваться — всё открывается сразу после оплаты
+
+🌸 <b>Используй каждый день — и ты получишь:</b>
+ • персонального психолога, астролога, диетолога и многое другое  
+ • поддержку 24/7  
+ • помощь в любых жизненных ситуациях  
+`;
+
+  bot.sendMessage(chatId, balanceMessage, BALANCE_MENU);
 });
 
 bot.onText(/\/terms/, (msg) => {
@@ -174,6 +220,10 @@ bot.on("callback_query", async (query) => {
 `,
       parse_mode: "HTML"
     });
+  }
+
+  if (data === "balance_topup") {
+    await bot.sendMessage(chatId, "🌸 Выбери для себя удобный способ оплаты:", BALANCE_OPTIONS_MENU);
   }
 
   bot.answerCallbackQuery(query.id); // remove loading spinner on button press
