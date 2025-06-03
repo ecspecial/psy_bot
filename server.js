@@ -348,10 +348,15 @@ app.post('/api/subscription/cancel', async (req, res) => {
         return res.status(500).json({ error: "Database error" });
       }
 
-      if (!row || !row.subscription_id) {
+      if (!row || row.subscription_id === undefined) {
         return res.status(400).json({ error: "No active subscription to cancel" });
-      }
+        }
+
+        if (!row.subscription_id) {
+        return res.status(400).json({ error: "Subscription payment not recurrent" });
+        }
       const subscription_id = row.subscription_id;
+      
 
     //   console.log("Using credentials:", process.env.CLOUD_PUBLIC_ID, process.env.CLOUD_API_SECRET);
 

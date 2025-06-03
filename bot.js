@@ -308,7 +308,10 @@ bot.on("callback_query", async (query) => {
 
             if (msg === "No active subscription to cancel") {
             await bot.sendMessage(chatId, "📭 У вас нет активной подписки.");
-            } else {
+            } else if (msg === "Subscription payment not recurrent") {
+            await bot.sendMessage(chatId, "🧾 Ваша подписка куплена при помощи одноразового платежа, дальнейших списаний не будет. Спасибо 🙏");
+            }
+            else {
             console.error("❌ Cancel error:", msg);
             await bot.sendMessage(chatId, "⚠️ Не удалось отменить подписку. Попробуйте позже.");
             }
@@ -316,6 +319,22 @@ bot.on("callback_query", async (query) => {
     }
 
     if (data === "topup_stars") {
+
+        try {
+            const { data: status } = await axios.post("https://numerologyfromkate.com/api/subscription/check", {
+            account_id: String(chatId)
+            });
+
+            if (status.allowed) {
+            await bot.sendMessage(chatId, "🎉 У вас уже активна подписка! Спасибо 🙏");
+            return;
+            }
+        } catch (err) {
+            console.error("❌ Stars check error:", err?.response?.data || err.message);
+            await bot.sendMessage(chatId, "⚠️ Не удалось проверить подписку. Попробуйте позже.");
+            return;
+        }
+        
         const priceInStars = 1;                 // 490 Stars for 1 week
         const payload      = `stars_${chatId}_${Date.now()}`;   // anything you want
 
