@@ -360,8 +360,30 @@ bot.on("callback_query", async (query) => {
   bot.answerCallbackQuery(query.id); // remove loading spinner on button press
 });
 
-bot.on("pre_checkout_query", (query) => {
-  bot.answerPreCheckoutQuery(query.id, true);   // OK = true
+bot.on("pre_checkout_query", async (query) => {
+  try {
+    const chatId = query.from.id;
+
+    const { data: status } = await axios.post("https://numerologyfromkate.com/api/subscription/check", {
+      account_id: String(chatId)
+    });
+
+    if (status.allowed) {
+      // ❌ Already subscribed — reject payment
+      await bot.answerPreCheckoutQuery(query.id, false, {
+        error_message: "🎉 У вас уже активна подписка! Спасибо 🙏"
+      });
+      return;
+    }
+
+    // ✅ Allow payment
+    await bot.answerPreCheckoutQuery(query.id, true);
+  } catch (err) {
+    console.error("❌ Error in pre_checkout_query:", err?.response?.data || err.message);
+    await bot.answerPreCheckoutQuery(query.id, false, {
+      error_message: "⚠️ Не удалось проверить подписку. Попробуйте позже."
+    });
+  }
 });
 
 async function askOpenAI(role, messages) {
