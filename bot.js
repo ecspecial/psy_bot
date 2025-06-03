@@ -307,17 +307,7 @@ bot.on("callback_query", async (query) => {
             const msg = err?.response?.data?.error || err.message;
 
             if (msg === "No active subscription to cancel") {
-            await bot.sendMessage(chatId, subscribeText, {
-                parse_mode: "HTML",
-                reply_markup: {
-                    inline_keyboard: [
-                    [
-                        { text: "💳 Оплатить", callback_data: "balance_topup" }
-                    ]
-                    ]
-                }
-                });
-                return;
+            await bot.sendMessage(chatId, "📭 У вас нет активной подписки.");
             } else {
             console.error("❌ Cancel error:", msg);
             await bot.sendMessage(chatId, "⚠️ Не удалось отменить подписку. Попробуйте позже.");
@@ -378,7 +368,17 @@ bot.on("message", async (msg) => {
   });
 
   if (!data.allowed) {
-    return bot.sendMessage(chatId, "⚠️ У вас нет активной подписки. Пожалуйста, оформите доступ через /balance.");
+    await bot.sendMessage(chatId, subscribeText, {
+        parse_mode: "HTML",
+        reply_markup: {
+            inline_keyboard: [
+            [
+                { text: "💳 Оплатить", callback_data: "balance_topup" }
+            ]
+            ]
+        }
+        });
+        return;
   }
 } catch (err) {
   console.error("❌ Subscription check error:", err?.response?.data || err.message);
