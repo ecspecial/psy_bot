@@ -335,7 +335,7 @@ bot.on("callback_query", async (query) => {
             return;
         }
         
-        const priceInStars = 1;                 // 490 Stars for 1 week
+        const priceInStars = 200;                 // 490 Stars for 1 week
         const payload      = `stars_${chatId}_${Date.now()}`;   // anything you want
 
         await bot.sendInvoice(
