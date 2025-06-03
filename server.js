@@ -5,6 +5,8 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require("crypto");
 const axios = require("axios");
+require('dotenv').config();
+
 
 const app = express();
 const PORT = 3000;
@@ -207,13 +209,15 @@ app.post('/api/subscription/cancel', async (req, res) => {
       }
       const subscription_id = row.subscription_id;
 
+    //   console.log("Using credentials:", process.env.CLOUD_PUBLIC_ID, process.env.CLOUD_API_SECRET);
+
       try {
         const response = await axios.post(
         "https://api.cloudpayments.ru/subscriptions/cancel",
         { Id: subscription_id },
         {
             auth: {
-            login: process.env.CLOUD_PUBLIC_ID,
+            username: process.env.CLOUD_PUBLIC_ID,
             password: process.env.CLOUD_API_SECRET
             }
         }
