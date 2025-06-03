@@ -236,42 +236,64 @@ bot.on("callback_query", async (query) => {
     await bot.sendMessage(chatId, "🌸 Выбери для себя удобный способ оплаты:", BALANCE_OPTIONS_MENU);
   }
 
-  if (data === "topup_card") {
-    try {
-        const { data } = await axios.post("https://numerologyfromkate.com/api/payment/init", {
-        account_id: String(chatId)
-        });
+    if (data === "topup_card") {
+        try {
+            const { data } = await axios.post("https://numerologyfromkate.com/api/payment/init", {
+            account_id: String(chatId)
+            });
 
-        await bot.sendMessage(chatId, "🔗 Для оплаты перейдите по ссылке:", {
-        reply_markup: {
-            inline_keyboard: [
-            [{ text: "💳 Оплатить", url: data.url }]
-            ]
+            await bot.sendMessage(chatId, "🔗 Для оплаты перейдите по ссылке:", {
+            reply_markup: {
+                inline_keyboard: [[{ text: "💳 Оплатить", url: data.url }]]
+            }
+            });
+        } catch (err) {
+            const errorText = err?.response?.data?.error;
+            if (errorText === "Subscription already active") {
+            await bot.sendMessage(chatId, "🎉 У вас уже активна подписка! Спасибо 🙏");
+            } else {
+            console.error("❌ Failed to generate payment link:", err?.response?.data || err.message);
+            await bot.sendMessage(chatId, "⚠️ Не удалось создать ссылку на оплату. Попробуйте позже.");
+            }
         }
-        });
-    } catch (err) {
-        console.error("❌ Failed to generate payment link:", err?.response?.data || err.message);
-        await bot.sendMessage(chatId, "⚠️ Не удалось создать ссылку на оплату. Попробуйте позже.");
-    }
     }
 
     if (data === "topup_sbp") {
-    try {
-        const { data } = await axios.post("https://numerologyfromkate.com/api/payment/sbp", {
-        account_id: String(chatId)
-        });
+        try {
+            const { data } = await axios.post("https://numerologyfromkate.com/api/payment/sbp", {
+            account_id: String(chatId)
+            });
 
-        await bot.sendMessage(chatId, "🔗 Оплата через СБП:", {
-        reply_markup: {
-            inline_keyboard: [
-            [{ text: "🚀 Оплатить через СБП", url: data.url }]
-            ]
+            await bot.sendMessage(chatId, "🔗 Оплата через СБП:", {
+            reply_markup: {
+                inline_keyboard: [
+                [{ text: "🚀 Оплатить через СБП", url: data.url }]
+                ]
+            }
+            });
+        } catch (err) {
+            console.error("❌ SBP link error:", err?.response?.data || err.message);
+            await bot.sendMessage(chatId, "⚠️ Не удалось создать ссылку на оплату. Попробуйте позже.");
         }
-        });
-    } catch (err) {
-        console.error("❌ SBP link error:", err?.response?.data || err.message);
-        await bot.sendMessage(chatId, "⚠️ Не удалось создать ссылку на оплату. Попробуйте позже.");
     }
+
+    if (data === "balance_cancel") {
+        try {
+            const response = await axios.post("https://numerologyfromkate.com/api/subscription/cancel", {
+            account_id: String(chatId)
+            });
+
+            await bot.sendMessage(chatId, "❌ Подписка успешно отменена. Вы всегда можете вернуться позже ❤️");
+        } catch (err) {
+            const msg = err?.response?.data?.error || err.message;
+
+            if (msg === "No active subscription to cancel") {
+            await bot.sendMessage(chatId, "📭 У вас нет активной подписки.");
+            } else {
+            console.error("❌ Cancel error:", msg);
+            await bot.sendMessage(chatId, "⚠️ Не удалось отменить подписку. Попробуйте позже.");
+            }
+        }
     }
 
   bot.answerCallbackQuery(query.id); // remove loading spinner on button press

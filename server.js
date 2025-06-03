@@ -75,10 +75,15 @@ app.post("/api/payment/init", (req, res) => {
     return res.status(400).json({ error: "Missing account_id" });
   }
 
-  db.get(`SELECT ftd FROM users WHERE account_id = ?`, [account_id], (err, row) => {
+  db.get(`SELECT is_active, ftd FROM users WHERE account_id = ?`, [account_id], (err, row) => {
     if (err) {
-      console.error("❌ Failed to get user FTD:", err.message);
+      console.error("❌ Failed to get user info:", err.message);
       return res.status(500).json({ error: "Database error" });
+    }
+
+    // ❌ User already has an active subscription
+    if (row && row.is_active === 1) {
+      return res.status(400).json({ error: "Subscription already active" });
     }
 
     const ftd = row ? !!row.ftd : true;
@@ -179,6 +184,60 @@ app.post('/api/payment/success', (req, res) => {
   );
 
   res.status(200).json({ code: 0, message: 'Received successfully' });
+});
+
+app.post('/api/subscription/cancel', async (req, res) => {
+  const { account_id } = req.body;
+
+  if (!account_id) {
+    return res.status(400).json({ error: "Missing account_id" });
+  }
+
+  db.get(
+    `SELECT subscription_id FROM users WHERE account_id = ? AND is_active = 1`,
+    [account_id],
+    async (err, row) => {
+      if (err) {
+        console.error("❌ DB error on cancel:", err.message);
+        return res.status(500).json({ error: "Database error" });
+      }
+
+      if (!row || !row.subscription_id) {
+        return res.status(400).json({ error: "No active subscription to cancel" });
+      }
+
+      try {
+        const response = await axios.post("https://api.cloudpayments.ru/subscriptions/cancel", {
+          PublicId: "pk_c7fad15ea66486fdda6654455dd4f",
+          Id: row.subscription_id
+        });
+
+        if (!response.data?.Success) {
+          return res.status(500).json({ error: response.data?.Message || "Cancellation failed" });
+        }
+
+        db.run(
+          `UPDATE users SET 
+             is_active = 0,
+             subscription_id = NULL,
+             updated_at = CURRENT_TIMESTAMP
+           WHERE account_id = ?`,
+          [account_id],
+          (err) => {
+            if (err) {
+              console.error("❌ Failed to update user after cancel:", err.message);
+              return res.status(500).json({ error: "Database update failed" });
+            }
+
+            res.status(200).json({ success: true });
+          }
+        );
+      } catch (err) {
+        console.error("❌ CloudPayments cancel error:", err?.response?.data || err.message);
+        res.status(500).json({ error: "CloudPayments API error" });
+      }
+    }
+  );
 });
 
 app.post("/api/payment/sbp", (req, res) => {
