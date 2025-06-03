@@ -316,7 +316,8 @@ app.post('/api/subscription/cancel', async (req, res) => {
           `UPDATE users SET 
              is_active = 0,
              subscription_id = NULL,
-             updated_at = CURRENT_TIMESTAMP
+             updated_at = CURRENT_TIMESTAMP,
+             subscription_end_date = NULL
            WHERE account_id = ?`,
           [account_id],
           (err) => {
