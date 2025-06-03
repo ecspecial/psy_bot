@@ -86,6 +86,16 @@ const welcomeMessage = `
 
 bot.onText(/\/start|\/new/, async (msg) => {
   const chatId = msg.chat.id;
+
+  // 🔄 Register user in the backend
+  try {
+    await axios.post("https://numerologyfromkate.com/api/users/register", {
+      account_id: String(chatId)
+    });
+  } catch (err) {
+    console.error("❌ Failed to register user:", err?.response?.data || err.message);
+  }
+
   await bot.sendPhoto(chatId, "./0.jpg", {
     caption: welcomeMessage,
     parse_mode: "HTML",
@@ -225,6 +235,44 @@ bot.on("callback_query", async (query) => {
   if (data === "balance_topup") {
     await bot.sendMessage(chatId, "🌸 Выбери для себя удобный способ оплаты:", BALANCE_OPTIONS_MENU);
   }
+
+  if (data === "topup_card") {
+    try {
+        const { data } = await axios.post("https://numerologyfromkate.com/api/payment/init", {
+        account_id: String(chatId)
+        });
+
+        await bot.sendMessage(chatId, "🔗 Для оплаты перейдите по ссылке:", {
+        reply_markup: {
+            inline_keyboard: [
+            [{ text: "💳 Оплатить", url: data.url }]
+            ]
+        }
+        });
+    } catch (err) {
+        console.error("❌ Failed to generate payment link:", err?.response?.data || err.message);
+        await bot.sendMessage(chatId, "⚠️ Не удалось создать ссылку на оплату. Попробуйте позже.");
+    }
+    }
+
+    if (data === "topup_sbp") {
+    try {
+        const { data } = await axios.post("https://numerologyfromkate.com/api/payment/sbp", {
+        account_id: String(chatId)
+        });
+
+        await bot.sendMessage(chatId, "🔗 Оплата через СБП:", {
+        reply_markup: {
+            inline_keyboard: [
+            [{ text: "🚀 Оплатить через СБП", url: data.url }]
+            ]
+        }
+        });
+    } catch (err) {
+        console.error("❌ SBP link error:", err?.response?.data || err.message);
+        await bot.sendMessage(chatId, "⚠️ Не удалось создать ссылку на оплату. Попробуйте позже.");
+    }
+    }
 
   bot.answerCallbackQuery(query.id); // remove loading spinner on button press
 });
