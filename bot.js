@@ -319,14 +319,23 @@ bot.on("callback_query", async (query) => {
         const priceInStars = 1;                 // 490 Stars for 1 week
         const payload      = `stars_${chatId}_${Date.now()}`;   // anything you want
 
-        await bot.sendInvoice(chatId,                // ① invoice
-        "Women's World – 1 неделя",                // title
-        "Подписка (7 дней доступа ко всем разделам)", // description
-        payload,                                   // unique payload
-        "",                                        // provider_token = ""  (Stars!)
-        "XTR",                                     // currency
-        [ { label: "Подписка на неделю", amount: priceInStars } ]  // single price item
-        );
+        await bot.sendInvoice(
+            chatId,
+            "Women’s World ✨ подписка 7 дней",
+            "⚡ Все эксперты сразу: психолог, астролог, диетолог.",
+            payload,
+            "",                           // provider_token — empty for Stars
+            "XTR",                        // currency
+            [ { label: "\u00A0", amount: priceInStars } ],
+            {
+                // optional deep-link parameter → Pay-button caption
+                reply_markup: {
+                inline_keyboard: [
+                    [{ text: "💫 Оплатить 1 Stars", pay: true }]
+                ]
+                }
+            }
+            );
   }
 
   bot.answerCallbackQuery(query.id); // remove loading spinner on button press
