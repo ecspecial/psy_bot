@@ -212,7 +212,7 @@ app.post('/api/subscription/cancel', async (req, res) => {
           { Id: row.subscription_id },
           {
             auth: {
-              username: process.env.CLOUD_PUBLIC_ID,
+              login: process.env.CLOUD_PUBLIC_ID,
               password: process.env.CLOUD_API_SECRET
             }
           }
