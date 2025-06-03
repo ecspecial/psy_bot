@@ -47,9 +47,9 @@ const BALANCE_OPTIONS_MENU = {
       [
         { text: "Картой", callback_data: "topup_card" }
       ],
-      [
-        { text: "Telegram Stars", callback_data: "topup_stars" }
-      ],
+    //   [
+    //     { text: "Telegram Stars", callback_data: "topup_stars" }
+    //   ],
     ]
   },
   parse_mode: "HTML"
