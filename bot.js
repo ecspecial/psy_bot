@@ -346,6 +346,19 @@ bot.on("message", async (msg) => {
   userHistory[chatId] = userHistory[chatId] || [];
   userHistory[chatId].push(text);
 
+  try {
+  const { data } = await axios.post("https://numerologyfromkate.com/api/subscription/check", {
+    account_id: String(chatId)
+  });
+
+  if (!data.allowed) {
+    return bot.sendMessage(chatId, "⚠️ У вас нет активной подписки. Пожалуйста, оформите доступ через /balance.");
+  }
+} catch (err) {
+  console.error("❌ Subscription check error:", err?.response?.data || err.message);
+  return bot.sendMessage(chatId, "⚠️ Ошибка при проверке подписки. Попробуйте позже.");
+}
+
   const reply = await askOpenAI(role, userHistory[chatId]);
   userHistory[chatId].push(reply);
 

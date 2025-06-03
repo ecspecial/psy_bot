@@ -69,6 +69,92 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
 });
 
+app.post("/api/subscription/check", async (req, res) => {
+  const { account_id } = req.body;
+
+  if (!account_id) {
+    return res.status(400).json({ error: "Missing account_id" });
+  }
+
+  db.get(`SELECT subscription_id, is_active, subscription_end_date FROM users WHERE account_id = ?`, [account_id], async (err, row) => {
+    if (err) {
+      console.error("❌ DB error on subscription check:", err.message);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    if (!row || !row.subscription_end_date) {
+      return res.status(200).json({ allowed: false });
+    }
+
+    const { subscription_id, is_active, subscription_end_date } = row;
+    const now = new Date();
+    const endDate = new Date(subscription_end_date);
+
+    // ✅ Case 1: NON-RECURRING: is_active = 1 and endDate in future
+    if (!subscription_id && is_active === 1 && now < endDate) {
+      return res.status(200).json({ allowed: true });
+    }
+
+    // ✅ Case 2: RECURRING and still valid
+    if (subscription_id && is_active === 1 && now < endDate) {
+      return res.status(200).json({ allowed: true });
+    }
+
+    // ❌ If recurrent but expired — check CloudPayments status
+    if (subscription_id && now >= endDate) {
+      try {
+        const cloudResponse = await axios.post(
+          "https://api.cloudpayments.ru/subscriptions/find",
+          { accountId: account_id },
+          {
+            auth: {
+              username: process.env.CLOUD_PUBLIC_ID,
+              password: process.env.CLOUD_API_SECRET
+            }
+          }
+        );
+
+        if (!cloudResponse.data?.Success) {
+          console.error("❌ CloudPayments status check failed:", cloudResponse.data?.Message);
+          return res.status(200).json({ allowed: false });
+        }
+
+        const subs = cloudResponse.data.Model || [];
+        const matching = subs.find(s => s.Id === subscription_id);
+
+        if (matching && matching.StatusCode === 0) {
+          // ✅ Subscription still active — extend local end date
+          db.run(
+            `UPDATE users SET subscription_end_date = datetime(subscription_end_date, '+7 days'), is_active = 1, updated_at = CURRENT_TIMESTAMP WHERE account_id = ?`,
+            [account_id],
+            (err) => {
+              if (err) console.error("❌ DB update after remote check failed:", err.message);
+            }
+          );
+          return res.status(200).json({ allowed: true });
+        } else {
+          // ❌ Not active anymore — disable locally
+          db.run(
+            `UPDATE users SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE account_id = ?`,
+            [account_id],
+            (err) => {
+              if (err) console.error("❌ DB disable user error:", err.message);
+            }
+          );
+          return res.status(200).json({ allowed: false });
+        }
+
+      } catch (err) {
+        console.error("❌ CloudPayments API error:", err?.response?.data || err.message);
+        return res.status(500).json({ allowed: false, error: "CloudPayments API error" });
+      }
+    }
+
+    // ❌ Fallback
+    return res.status(200).json({ allowed: false });
+  });
+});
+
 // New payment 
 app.post("/api/payment/init", (req, res) => {
   const { account_id } = req.body;
