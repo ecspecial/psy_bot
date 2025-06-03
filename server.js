@@ -208,16 +208,15 @@ app.post('/api/subscription/cancel', async (req, res) => {
 
       try {
         const response = await axios.post(
-          "https://api.cloudpayments.ru/subscriptions/cancel",
-          { Id: row.subscription_id },
-          {
-            auth: {
-              login: process.env.CLOUD_PUBLIC_ID,
-              password: process.env.CLOUD_API_SECRET
+            "https://api.cloudpayments.ru/subscriptions/cancel",
+            { Id: subscription_id },
+            {
+                auth: {
+                username: process.env.CLOUD_PUBLIC_ID,
+                password: process.env.CLOUD_API_SECRET
+                }
             }
-          }
-        );
-
+            );
         if (!response.data?.Success) {
           return res.status(500).json({ error: response.data?.Message || "Cancellation failed" });
         }
