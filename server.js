@@ -209,7 +209,7 @@ app.post('/api/subscription/cancel', async (req, res) => {
       try {
         const response = await axios.post(
             "https://api.cloudpayments.ru/subscriptions/cancel",
-            { Id: subscription_id },
+            { subscription_id },
             {
                 auth: {
                 username: process.env.CLOUD_PUBLIC_ID,
