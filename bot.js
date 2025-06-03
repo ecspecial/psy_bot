@@ -334,7 +334,7 @@ bot.on("callback_query", async (query) => {
             await bot.sendMessage(chatId, "⚠️ Не удалось проверить подписку. Попробуйте позже.");
             return;
         }
-
+        
         const priceInStars = 1;                 // 490 Stars for 1 week
         const payload      = `stars_${chatId}_${Date.now()}`;   // anything you want
 
@@ -360,21 +360,7 @@ bot.on("callback_query", async (query) => {
   bot.answerCallbackQuery(query.id); // remove loading spinner on button press
 });
 
-bot.on("pre_checkout_query", async (query) => {
-    try {
-            const { data: status } = await axios.post("https://numerologyfromkate.com/api/subscription/check", {
-            account_id: String(chatId)
-            });
-
-            if (status.allowed) {
-            await bot.sendMessage(chatId, "🎉 У вас уже активна подписка! Спасибо 🙏");
-            return;
-            }
-        } catch (err) {
-            console.error("❌ Stars check error:", err?.response?.data || err.message);
-            await bot.sendMessage(chatId, "⚠️ Не удалось проверить подписку. Попробуйте позже.");
-            return;
-        }
+bot.on("pre_checkout_query", (query) => {
   bot.answerPreCheckoutQuery(query.id, true);   // OK = true
 });
 
