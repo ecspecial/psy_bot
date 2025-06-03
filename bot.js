@@ -47,9 +47,9 @@ const BALANCE_OPTIONS_MENU = {
       [
         { text: "Картой", callback_data: "topup_card" }
       ],
-    //   [
-    //     { text: "Telegram Stars", callback_data: "topup_stars" }
-    //   ],
+      [
+        { text: "Telegram Stars", callback_data: "topup_stars" }
+      ],
     ]
   },
   parse_mode: "HTML"
@@ -315,7 +315,25 @@ bot.on("callback_query", async (query) => {
         }
     }
 
+    if (data === "topup_stars") {
+        const priceInStars = 1;                 // 490 Stars for 1 week
+        const payload      = `stars_${chatId}_${Date.now()}`;   // anything you want
+
+        await bot.sendInvoice(chatId,                // ① invoice
+        "Women's World – 1 неделя",                // title
+        "Подписка (7 дней доступа ко всем разделам)", // description
+        payload,                                   // unique payload
+        "",                                        // provider_token = ""  (Stars!)
+        "XTR",                                     // currency
+        [ { label: "Подписка на неделю", amount: priceInStars } ]  // single price item
+        );
+  }
+
   bot.answerCallbackQuery(query.id); // remove loading spinner on button press
+});
+
+bot.on("pre_checkout_query", (query) => {
+  bot.answerPreCheckoutQuery(query.id, true);   // OK = true
 });
 
 async function askOpenAI(role, messages) {
@@ -347,6 +365,33 @@ async function askOpenAI(role, messages) {
 }
 
 bot.on("message", async (msg) => {
+
+    if (msg.successful_payment) {
+        const chatId  = msg.chat.id;
+        const amount  = msg.successful_payment.total_amount;
+        const payload = msg.successful_payment.invoice_payload;
+        const starsTx = msg.successful_payment.telegram_payment_charge_id;
+
+        console.log(`💰 Stars payment ${amount} XTR, tx: ${starsTx}`);
+
+        // Tell your backend to activate the subscription
+        try {
+        await axios.post("https://numerologyfromkate.com/api/payment/stars-success", {
+            account_id: String(chatId),
+            amount,
+            tx_id:   starsTx,
+            payload
+        });
+        } catch (e) {
+        console.error("Could not notify backend:", e.message);
+        }
+
+        await bot.sendMessage(chatId,
+        "✅ Оплата получена! Доступ на неделю активирован.\n" +
+        "Задавай свой вопрос – мы готовы помочь.");
+        return;                    // don’t fall through to normal text handler
+    }
+
   const chatId = msg.chat.id;
   const text = msg.text?.trim();
 

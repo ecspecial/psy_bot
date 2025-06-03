@@ -69,6 +69,64 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
 });
 
+app.post("/api/payment/stars-success", (req, res) => {
+  const { account_id, amount, tx_id, payload } = req.body;
+
+  if (!account_id || !tx_id) {               // minimal sanity check
+    return res.status(400).json({ error: "Missing account_id or tx_id" });
+  }
+
+  // ①  Save payment — ignore if it is already there (idempotent)
+  db.run(
+    `INSERT OR IGNORE INTO payments
+       (transaction_id, account_id, invoice_id, subscription_id,
+        amount, currency, status, operation_type, token, is_test, date_time)
+     VALUES(?, ?, ?, ?, ?, ?, ?, ?, '', 0, datetime('now'))`,
+    [
+      tx_id,                               // transaction_id   (primary key)
+      account_id,
+      payload || null,                     // invoice_id   (optional: original pay-load)
+      tx_id,                               // subscription_id (same as tx_id)
+      parseFloat(amount),
+      'XTR',                               // currency
+      'complete',                          // status
+      'tg_stars'                           // operation_type
+    ],
+    (err) => {
+      if (err) {
+        console.error("❌ Stars payment insert error:", err.message);
+        return res.status(500).json({ error: "DB insert error" });
+      }
+
+      // ②  Activate / extend the subscription
+      db.run(
+        `UPDATE users SET
+             is_active            = 1,
+             ftd                  = 0,
+             subscription_id      = NULL,
+             subscription_end_date= COALESCE(
+                                       CASE
+                                         WHEN subscription_end_date IS NULL
+                                           THEN datetime('now', '+7 days')
+                                         WHEN datetime(subscription_end_date) < datetime('now')
+                                           THEN datetime('now', '+7 days')
+                                         ELSE datetime(subscription_end_date, '+7 days')
+                                       END,
+                                       datetime('now', '+7 days')
+                                     ),
+             updated_at           = CURRENT_TIMESTAMP
+           WHERE account_id = ?`,
+        [ account_id ],
+        (err2) => {
+          if (err2) {
+            console.error("❌ Stars user-update error:", err2.message);
+            return res.status(500).json({ error: "DB update error" });
+          }
+          return res.json({ success: true });
+        });
+    });
+});
+
 app.post("/api/subscription/check", async (req, res) => {
   const { account_id } = req.body;
 
