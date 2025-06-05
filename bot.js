@@ -41,9 +41,9 @@ const BALANCE_MENU = {
 const BALANCE_OPTIONS_MENU = {
   reply_markup: {
     inline_keyboard: [
-      [
-        { text: "СБП", callback_data: "topup_sbp" }
-      ],
+    //   [
+    //     { text: "СБП", callback_data: "topup_sbp" }
+    //   ],
       [
         { text: "Картой", callback_data: "topup_card" }
       ],
@@ -276,24 +276,24 @@ bot.on("callback_query", async (query) => {
         }
     }
 
-    if (data === "topup_sbp") {
-        try {
-            const { data } = await axios.post("https://numerologyfromkate.com/api/payment/sbp", {
-            account_id: String(chatId)
-            });
+    // if (data === "topup_sbp") {
+    //     try {
+    //         const { data } = await axios.post("https://numerologyfromkate.com/api/payment/sbp", {
+    //         account_id: String(chatId)
+    //         });
 
-            await bot.sendMessage(chatId, "🔗 Оплата через СБП:", {
-            reply_markup: {
-                inline_keyboard: [
-                [{ text: "🚀 Оплатить через СБП", url: data.url }]
-                ]
-            }
-            });
-        } catch (err) {
-            console.error("❌ SBP link error:", err?.response?.data || err.message);
-            await bot.sendMessage(chatId, "⚠️ Не удалось создать ссылку на оплату. Попробуйте позже.");
-        }
-    }
+    //         await bot.sendMessage(chatId, "🔗 Оплата через СБП:", {
+    //         reply_markup: {
+    //             inline_keyboard: [
+    //             [{ text: "🚀 Оплатить через СБП", url: data.url }]
+    //             ]
+    //         }
+    //         });
+    //     } catch (err) {
+    //         console.error("❌ SBP link error:", err?.response?.data || err.message);
+    //         await bot.sendMessage(chatId, "⚠️ Не удалось создать ссылку на оплату. Попробуйте позже.");
+    //     }
+    // }
 
     if (data === "balance_cancel") {
         try {
