@@ -412,7 +412,7 @@ app.post("/api/payment/sbp", (req, res) => {
   const amount = 490.00;
 
   const payload = {
-    PublicId: "pk_c7fad15ea66486fdda6654455dd4f", // ✅ change if needed
+    PublicId: process.env.CLOUD_PUBLIC_ID,
     Amount: amount,
     Currency: "RUB",
     Description: "Оплата по СБП",
